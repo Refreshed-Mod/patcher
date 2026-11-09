@@ -1,0 +1,15 @@
+WEBFISHING: Refreshed - local build notice
+
+This folder was built on your computer from your own copy of WEBFISHING by patcher.py.
+WEBFISHING and its original code, scenes and assets belong to their original developer.
+The patch contains only the Refreshed port's changes; the original game data comes from
+your installation. Do not redistribute this build or the recovered files.
+
+patcher.py and updater.py are GPL-3.0-or-later, source at https://github.com/Refreshed-Mod/patcher
+
+Third-party components:
+- Godot Engine 4.7.2 runtime (MIT), see licenses/godot/LICENSE.txt and COPYRIGHT.txt
+- GodotSteam GDExtension (MIT), see licenses/godotsteam/license.md
+- Steamworks API redistributables (steam_api64.dll / libsteam_api.so) by Valve, under the Steamworks SDK terms
+- Zerove font (CC0 1.0), see licenses/fonts/Zerove.LICENSE.txt
+- Mozilla's root certificate list (cacert.pem, MPL 2.0), used by the patcher and updater for HTTPS downloads
