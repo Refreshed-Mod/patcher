@@ -333,6 +333,15 @@ def main():
         automatic_done = json.loads(setup_status.read_text())
         assert automatic_done['steam'] is True
         assert automatic_done['launch_options'] == 'gamemoderun launch-refreshed.sh %command%', 'Show the actual installed parameters, including existing wrappers'
+        # launch option changed by the user doesn't block uninstall
+        real = updater.local_patcher(Path(updater.__file__).parent)
+        def changed(*args): raise real.PatchError("WEBFISHING's Steam launch option was changed after Refreshed set it, so it was left unchanged.")
+        real.restore_steam = changed
+        (automatic / 'install.json').write_text(json.dumps({**install, 'output': str(automatic), 'state': str(root / '.Automatic setup ü-updater')}))
+        with patch.object(updater, 'local_patcher', return_value=real):
+            assert updater.setup(['restore-steam', '--output', str(automatic), '--status', str(setup_status)]) == 1
+            assert updater.setup(['uninstall', '--output', str(automatic), '--status', str(setup_status)]) == 0
+        assert not automatic.exists()
         unrelated = root / 'Documents'
         unrelated.mkdir()
         (unrelated / 'keep.txt').write_text('mine')

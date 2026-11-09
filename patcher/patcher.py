@@ -1143,7 +1143,12 @@ def updater_files(out, output, game_exe, system, manifest, cache, repository):
 
 
 def install_updater(state, source):
-    state.mkdir(mode=0o700, exist_ok=True)
+    # 0o700 = admin only ACL on windows if elevated
+    state.mkdir(mode=0o777 if os.name == "nt" else 0o700, exist_ok=True)
+    if os.name == "nt":
+        # fix old installs, needs admin
+        subprocess.run(["icacls", str(state), "/reset", "/T", "/C", "/Q"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0), check=False)
     (state / "jobs").mkdir(exist_ok=True)
     fd, name = tempfile.mkstemp(prefix=".updater-", dir=state)
     temp = Path(name)
@@ -1175,7 +1180,9 @@ def patch(game, output, payload_path=None, force=False, cache=None, keep_staging
     updater_source = here / "updater.py"
     if not updater_source.is_file(): raise PatchError("Missing updater.py next to the patcher.")
     remove_leftovers(output, progress)
-    staging = Path(tempfile.mkdtemp(prefix=".refreshed-patch-", dir=output.parent))
+    # no mkdtemp, same ACL issue
+    staging = output.parent / f".refreshed-patch-{os.urandom(6).hex()}"
+    staging.mkdir()
     started = time.time()
     installed = verified = False
     try:

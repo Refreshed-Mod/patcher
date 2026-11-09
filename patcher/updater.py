@@ -619,12 +619,16 @@ def setup(argv=None):
                 return 0
             install = installed_here(output)
             patcher = local_patcher(here)
+            state = Path(install["state"])
+            if args.action == "uninstall" and state.is_dir() and update_running(state):
+                raise UpdateError("An update is still running. Wait a minute and try again.")
             if (output / "steam-launch.json").is_file():
                 atomic_json(status, {"phase": "building", "message": "Restoring Steam's Play button", "progress": 0.2})
-                patcher.restore_steam(output, patcher.host_platform())
+                try: patcher.restore_steam(output, patcher.host_platform())
+                except patcher.PatchError as error:
+                    # user changed it, still uninstall
+                    if args.action != "uninstall" or "was changed" not in str(error): raise
             if args.action == "uninstall":
-                state = Path(install["state"])
-                if state.is_dir() and update_running(state): raise UpdateError("An update is still running. Wait a minute and try again.")
                 atomic_json(status, {"phase": "building", "message": "Removing Refreshed", "progress": 0.6})
                 kept = [Path(install["cache"]) / "build"] if install.get("cache") else []
                 for folder in [output, state, *kept]:
